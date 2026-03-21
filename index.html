@@ -223,17 +223,18 @@
 </head>
 <body>
     <div id="title-screen">
-        <div id="intro-slides" style="display: none;">
-    <div class="slide-content">
-        <img id="slide-img" src="" alt="slide image">
-        <div id="slide-text">メッセージがここに入ります</div>
+        <div class="noise-overlay"></div>
+        <h1 class="creepy-title">SYNAPSE<br><span class="subtitle">ARCHITECT_SYSTEM</span></h1>
+        <button class="start-btn" onclick="startGame()">SYSTEM BOOT [ゲームスタート]</button>
     </div>
-    <button id="slide-btn" onclick="nextSlide()">NEXT [進む]</button>
-</div>
-    <div class="noise-overlay"></div>
-    <h1 class="creepy-title">SYNAPSE<br><span class="subtitle">ARCHITECT_SYSTEM</span></h1>
-    <button class="start-btn" onclick="startGame()">SYSTEM BOOT [ゲームスタート]</button>
-</div>
+
+    <div id="intro-slides" style="display: none;">
+        <div class="slide-content">
+            <img id="slide-img" src="" alt="slide image">
+            <div id="slide-text">メッセージがここに入ります</div>
+        </div>
+        <button id="slide-btn" onclick="nextSlide()">NEXT [進む]</button>
+    </div>
 
 <div id="game-view" style="display: none;">
     <header>
