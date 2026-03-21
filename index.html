@@ -341,9 +341,8 @@ function startGame() {
 function renderSlide() {
     const data = introSlidesData[currentSlideIndex];
     document.getElementById('slide-img').src = data.img;
-    document.getElementById('slide-text').innerHTML = data.text; // HTMLタグ(<br>など)も使えます
+    document.getElementById('slide-text').innerHTML = data.text;
     
-    // 最後のスライドになったらボタンの文字を変える
     const btn = document.getElementById('slide-btn');
     if (currentSlideIndex === introSlidesData.length - 1) {
         btn.innerText = "SYSTEM BOOT [管理画面へ]";
@@ -356,23 +355,23 @@ function renderSlide() {
     }
 }
 
-// 「NEXT」ボタンを押したときの処理
+// 「NEXT」ボタンを押したときの処理（アニメーション付き）
 function nextSlide() {
     const slideContent = document.querySelector('.slide-content');
     
     // 1. まず画面を透明にする
     slideContent.classList.add('slide-fade-out');
 
-    // 2. 0.5秒（アニメーション時間）待ってから中身を入れ替える
+    // 2. 0.5秒待ってから切り替え
     setTimeout(() => {
         currentSlideIndex++;
 
         if (currentSlideIndex < introSlidesData.length) {
             renderSlide();
-            // 3. 中身を入れ替えたら透明を解除して表示させる
+            // 3. 透明を解除して表示させる
             slideContent.classList.remove('slide-fade-out');
         } else {
-            // 最後のスライドが終わった場合
+            // 最後のスライド終了
             document.getElementById('intro-slides').style.display = 'none';
             document.getElementById('game-view').style.display = 'grid';
             document.body.classList.add('glitch');
@@ -380,17 +379,12 @@ function nextSlide() {
         }
     }, 500);
 }
-    }
-}
-    // --- 追加：ゲームスタート処理 ---
 
-
-// --- Assets (Replace with your GitHub links) ---
+// --- Assets ---
 const IMG_AOI_BLUE = "./aoi_normal.png";
 const IMG_CEO_BLUE = "./ceo_normal.png";
 const IMG_RICHARD = "https://placehold.co/150x150/222/f00?text=RICHARD";
 const IMG_SYSTEM = "https://placehold.co/150x150/000/0ff?text=SYS";
-
 let state = {
     week: 1, cash: 1000000, revenue: 0, stock: 100.0,
     divide: 10, mental: 95, cost: 80000,
