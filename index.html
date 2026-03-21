@@ -358,19 +358,28 @@ function renderSlide() {
 
 // 「NEXT」ボタンを押したときの処理
 function nextSlide() {
-    currentSlideIndex++;
+    const slideContent = document.querySelector('.slide-content');
     
-    if (currentSlideIndex < introSlidesData.length) {
-        // まだスライドが残っている場合
-        renderSlide();
-    } else {
-        // 5枚目が終わった場合：ゲーム画面へ移行
-        document.getElementById('intro-slides').style.display = 'none';
-        document.getElementById('game-view').style.display = 'grid';
-        
-        // 開始演出（画面が少しバグる）
-        document.body.classList.add('glitch');
-        setTimeout(() => document.body.classList.remove('glitch'), 500);
+    // 1. まず画面を透明にする
+    slideContent.classList.add('slide-fade-out');
+
+    // 2. 0.5秒（アニメーション時間）待ってから中身を入れ替える
+    setTimeout(() => {
+        currentSlideIndex++;
+
+        if (currentSlideIndex < introSlidesData.length) {
+            renderSlide();
+            // 3. 中身を入れ替えたら透明を解除して表示させる
+            slideContent.classList.remove('slide-fade-out');
+        } else {
+            // 最後のスライドが終わった場合
+            document.getElementById('intro-slides').style.display = 'none';
+            document.getElementById('game-view').style.display = 'grid';
+            document.body.classList.add('glitch');
+            setTimeout(() => document.body.classList.remove('glitch'), 500);
+        }
+    }, 500);
+}
     }
 }
     // --- 追加：ゲームスタート処理 ---
