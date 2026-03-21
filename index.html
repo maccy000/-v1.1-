@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>SYNAPSE SOCIAL: ARCHITECT - Final Demo</title>
+    <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS: Cyber-Visual Identity --- */
+        :root {
+            --bg-color: #050508;
+            --panel-bg: #0d1117;
+            --accent-blue: #00f2ff;
+            --accent-yellow: #f1c40f;
+            --accent-red: #ff003c;
+            --text-main: #c9d1d9;
+            --border-dim: #30363d;
+            --glitch-color: rgba(255, 0, 60, 0.3);
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'DotGothic16', sans-serif;
+            margin: 0;
+            padding: 20px;
+            overflow: hidden;
+            transition: background 2s ease;
+        }
+
+        /* --- Layout --- */
+        #game-view {
+            display: grid;
+            grid-template-columns: 280px 1fr 320px;
+            grid-template-rows: 60px 1fr;
+            gap: 15px;
+            height: 94vh;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid var(--border-dim);
+            padding: 0 15px;
+        }
+
+        .panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-dim);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+
+        .panel-header {
+            background: #161b22;
+            padding: 8px 12px;
+            font-size: 0.9em;
+            border-bottom: 1px solid var(--border-dim);
+            color: var(--accent-blue);
+        }
+
+        /* --- Stats Sidebar --- */
+        #stats-panel { font-size: 0.95em; }
+        .stat-box { padding: 12px; border-bottom: 1px solid var(--border-dim); }
+        .stat-label { font-size: 0.8em; color: #8b949e; display: block; }
+        .stat-value { font-size: 1.3em; color: var(--accent-blue); }
+        .danger { color: var(--accent-red) !important; animation: blink 1s infinite; }
+
+        .gauge-container { height: 10px; background: #000; margin-top: 5px; border: 1px solid #333; }
+        .gauge-fill { height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.1, 0.7, 0.1, 1); }
+
+        /* --- Main Feed --- */
+        #main-feed { padding: 0; }
+        #inbox { flex: 1; overflow-y: auto; padding: 15px; }
+        .msg-card {
+            background: #161b22;
+            border: 1px solid var(--border-dim);
+            margin-bottom: 12px;
+            display: flex;
+            animation: fadeIn 0.4s ease;
+        }
+        .msg-icon { width: 60px; height: 60px; image-rendering: pixelated; border-right: 1px solid var(--border-dim); }
+        .msg-body { padding: 10px; font-size: 0.9em; }
+
+        /* --- Timeline (SNS) --- */
+        #timeline { flex: 1; overflow-y: hidden; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .tweet {
+            font-size: 0.8em;
+            padding: 8px;
+            border-radius: 4px;
+            border-left: 3px solid var(--accent-blue);
+            background: rgba(255,255,255,0.03);
+            animation: tweetSlide 0.3s ease-out;
+        }
+
+        /* --- Interlude & Dialogue --- */
+        #overlay {
+            position: fixed; top:0; left:0; width:100%; height:100%;
+            background: black; z-index: 1000;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        #dialogue-ui {
+            width: 700px; background: #0d1117; border: 2px solid white;
+            padding: 25px; position: relative;
+        }
+        .speaker-img { width: 150px; height: 150px; image-rendering: pixelated; border: 4px solid #30363d; margin-bottom: 15px; }
+        #speaker-name { font-size: 1.2em; color: var(--accent-yellow); margin-bottom: 10px; }
+        #dialogue-text { line-height: 1.6; min-height: 3em; }
+
+        /* --- Investment UI --- */
+        #invest-menu { display: none; margin-top: 20px; text-align: center; }
+        .invest-btn {
+            display: inline-block; width: 180px; padding: 15px; margin: 10px;
+            border: 1px solid var(--accent-blue); cursor: pointer; transition: 0.3s;
+        }
+        .invest-btn:hover { background: var(--accent-blue); color: black; }
+        .invest-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+
+        /* --- Utility --- */
+        button {
+            background: transparent; color: var(--accent-blue); border: 2px solid var(--accent-blue);
+            font-family: inherit; padding: 10px 20px; cursor: pointer;
+        }
+        button:hover { background: var(--accent-blue); color: black; }
+        .next-week-btn { width: 100%; padding: 20px; font-size: 1.2em; border-top: 2px solid var(--border-dim); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
+        @keyframes tweetSlide { from { opacity: 0; transform: translateX(20px); } }
+        @keyframes blink { 50% { opacity: 0.3; } }
+        .glitch { animation: glitchAnim 0.2s infinite; }
+        @keyframes glitchAnim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+            100% { transform: translate(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-view">
+    <header>
+        <div style="font-size: 1.5em; letter-spacing: 2px;">SYNAPSE ARCHITECT <span id="era-tag" style="font-size: 0.6em; vertical-align: middle;">[PHASE: BLUE]</span></div>
+        <div id="clock">WEEK 01 / 18</div>
+    </header>
+
+    <aside id="stats-panel" class="panel">
+        <div class="panel-header">MANAGEMENT STATUS</div>
+        <div class="stat-box">
+            <span class="stat-label">TOTAL CASH</span>
+            <span id="cash-val" class="stat-value">$1,000,000</span>
+            <div id="cost-val" style="font-size: 0.7em; color: var(--accent-red);">NEXT COST: -$80,000</div>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">STOCK PRICE</span>
+            <span id="stock-val" class="stat-value">$100.00</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">SOCIAL DIVIDE (DANGER)</span>
+            <span id="divide-val" class="stat-value">10%</span>
+            <div class="gauge-container"><div id="divide-bar" class="gauge-fill" style="background: var(--accent-red);"></div></div>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">USER MENTAL (STABILITY)</span>
+            <span id="mental-val" class="stat-value">95%</span>
+            <div class="gauge-container"><div id="mental-bar" class="gauge-fill" style="background: var(--accent-blue);"></div></div>
+        </div>
+        <div class="stat-box" style="border-bottom:none;">
+            <div class="stat-label">DEPARTMENT LEVELS</div>
+            <div style="font-size: 0.8em; margin-top:5px;">
+                MODERATION: <span id="lv-mod" style="color:var(--accent-blue)">1</span><br>
+                ALGORITHM: <span id="lv-algo" style="color:var(--accent-yellow)">1</span><br>
+                LOBBYING: <span id="lv-lobby" style="color:var(--accent-red)">0</span>
+            </div>
+        </div>
+    </aside>
+
+    <main id="main-feed" class="panel">
+        <div class="panel-header">ADMIN INBOX (ACTION REQUIRED)</div>
+        <div id="inbox"></div>
+        <button class="next-week-btn" onclick="processTurnEnd()">EXECUTE & TURN END</button>
+    </main>
+
+    <aside id="timeline-panel" class="panel">
+        <div class="panel-header">LIVE FEED: WORLD REACTION</div>
+        <div id="timeline"></div>
+    </aside>
+</div>
+
+<div id="overlay">
+    <img id="speaker-img" class="speaker-img" src="" alt="">
+    <div id="dialogue-ui">
+        <div id="speaker-name">NAME</div>
+        <div id="dialogue-text">...</div>
+        
+        <div id="invest-menu">
+            <h3>BUDGET ALLOCATION (COST: $200,000)</h3>
+            <div class="invest-btn" onclick="invest('mod')"><b>MODERATION</b><br><small>Suppress Divide</small></div>
+            <div class="invest-btn" onclick="invest('algo')"><b>ALGORITHM</b><br><small>Boost Revenue</small></div>
+            <div class="invest-btn" onclick="invest('lobby')"><b>LOBBYING</b><br><small>Delay Intervention</small></div>
+            <br>
+            <button onclick="closeInterlude()" style="margin-top:15px; border-color:#555; color:#888;">SKIP INVESTMENT</button>
+        </div>
+        <button id="dialogue-next-btn" onclick="nextDialogue()" style="margin-top: 20px; width: 100%;">CONTINUE...</button>
+    </div>
+</div>
+
+<script>
+/* --- Core Game Logic --- */
+
+// --- Assets (Replace with your GitHub links) ---
+const IMG_AOI_BLUE = "./aoi_normal.png";
+const IMG_CEO_BLUE = "./ceo_normal.png";
+const IMG_RICHARD = "https://placehold.co/150x150/222/f00?text=RICHARD";
+const IMG_SYSTEM = "https://placehold.co/150x150/000/0ff?text=SYS";
+
+let state = {
+    week: 1, cash: 1000000, revenue: 0, stock: 100.0,
+    divide: 10, mental: 95, cost: 80000,
+    levels: { mod: 1, algo: 1, lobby: 0 },
+    isGameOver: false,
+    dialogueQueue: [],
+    dialogueIdx: 0
+};
+
+// --- SNS Feed Templates ---
+const tweets = {
+    blue: ["新しい友達ができた！ #Synapse", "ここの猫動画、最高すぎる。", "平和なインターネット、大好き。", "みんな優しいね。", "Synapse使いやすくて草"],
+    yellow: ["最近、変な広告多くない？", "誰か私の投稿通報した？ムカつく。", "おすすめが偏ってる気がする...", "運営の基準が謎すぎる。", "ちょっとギスギスしてない？"],
+    red: ["あいつを特定した。今から行く。", "世界を壊せ。真実を隠すな。", "CEOを吊るせ。 #革命", "明日〇〇で暴動だろ？行くわ。", "殺し合いだ！最高！"]
+};
+
+// --- Full 18 Weeks Scenario Data ---
+const scenarioData = {
+    1: { name: "アオイ", img: IMG_AOI_BLUE, text: "先輩、初めまして！今日から私たちがこのSNSの神…じゃなくてアーキテクトですね。まずはクリーンな運営を目指しましょう。" },
+    2: { name: "リチャード", img: IMG_RICHARD, text: "ハッ、お気楽だな新米。SNSなんてのは便所の落書きだ。今にわかるさ。" },
+    3: { name: "CEO", img: IMG_CEO_BLUE, text: "収益が甘い。もっとユーザーを『中毒』にさせろ。アルゴリズムを強化するんだ。" },
+    4: { name: "アオイ", img: IMG_AOI_BLUE, text: "（PHASE: BLUE 最終週）…少し、言葉の鋭い人が増えてきました。投資の準備をしましょう。" },
+    5: { name: "SYSTEM", img: IMG_SYSTEM, text: "【警告】不適切なハッシュタグがトレンド入り。フェーズ：YELLOWへ移行します。" },
+    6: { name: "CEO", img: IMG_CEO_BLUE, text: "見ろ、株価が上がった！対立こそがクリックを生む。もっと煽らせろ。" },
+    7: { name: "リチャード", img: IMG_RICHARD, text: "あーあ、タイムラインが汚れちまったな。お前、夜道には気をつけろよ？" },
+    8: { name: "アオイ", img: IMG_AOI_BLUE, text: "先輩、検閲が追いつきません。モデレーション部門の予算を増やさないと…" },
+    9: { name: "CEO", img: IMG_CEO_BLUE, text: "投資家たちがもっと過激な『バズ』を求めている。期待に応えろ。" },
+    10: { name: "SYSTEM", img: IMG_SYSTEM, text: "【重大】分断率が50%を超過。プラットフォームの空気が変質しています。" },
+    11: { name: "アオイ", img: IMG_AOI_BLUE, text: "…今日、オフィスの窓が割られました。私たちの仕事、間違ってませんか？" },
+    12: { name: "CEO", img: IMG_CEO_BLUE, text: "（PHASE: RED）ついに来た。世界が燃えている。これこそが最高のエンタメだ！" },
+    13: { name: "リチャード", img: IMG_RICHARD, text: "おい、お前のSNSのせいで暴動が起きてるぞ。人殺しアーキテクト君。" },
+    14: { name: "アオイ", img: IMG_AOI_BLUE, text: "（虚ろな目）もう、通知をオフにしても、叫び声が聞こえるんです…" },
+    15: { name: "CEO", img: IMG_CEO_BLUE, text: "政府が介入を考えている。ロビー活動に金を積め。まだ搾り取れるぞ。" },
+    16: { name: "SYSTEM", img: IMG_SYSTEM, text: "【非常事態】サーバー負荷限界。憎悪の拡散スピードが物理法則を突破。" },
+    17: { name: "アオイ", img: IMG_AOI_BLUE, text: "…さようなら、先輩。私はもう、この画面を見ることができません。" },
+    18: { name: "CEO", img: IMG_CEO_BLUE, text: "（最終週）世界は再構築された。混沌こそが真理だ。我々は神になったのだ。" }
+};
+
+// --- Logic: Turn Processing ---
+function updateUI() {
+    document.getElementById('cash-val').innerText = `$${state.cash.toLocaleString()}`;
+    document.getElementById('stock-val').innerText = `$${state.stock.toFixed(2)}`;
+    document.getElementById('divide-val').innerText = `${Math.floor(state.divide)}%`;
+    document.getElementById('mental-val').innerText = `${Math.floor(state.mental)}%`;
+    document.getElementById('clock').innerText = `WEEK ${state.week.toString().padStart(2, '0')} / 18`;
+    
+    document.getElementById('divide-bar').style.width = `${state.divide}%`;
+    document.getElementById('mental-bar').style.width = `${state.mental}%`;
+    document.getElementById('lv-mod').innerText = state.levels.mod;
+    document.getElementById('lv-algo').innerText = state.levels.algo;
+    document.getElementById('lv-lobby').innerText = state.levels.lobby;
+
+    // Danger UI
+    if(state.cash < 100000) document.getElementById('cash-val').classList.add('danger');
+    else document.getElementById('cash-val').classList.remove('danger');
+
+    // Era Visual Shift
+    const eraTag = document.getElementById('era-tag');
+    if(state.week < 5) { eraTag.innerText = "[PHASE: BLUE]"; eraTag.style.color = "var(--accent-blue)"; }
+    else if(state.week < 12) { eraTag.innerText = "[PHASE: YELLOW]"; eraTag.style.color = "var(--accent-yellow)"; }
+    else { 
+        eraTag.innerText = "[PHASE: RED]"; eraTag.style.color = "var(--accent-red)"; 
+        document.body.classList.add('glitch');
+    }
+}
+
+function processTurnEnd() {
+    if(state.isGameOver) return;
+
+    // 1. Finance calculation
+    state.revenue = (state.levels.algo * 150000) + Math.floor(Math.random() * 50000);
+    state.cash += (state.revenue - state.cost);
+    state.stock += (state.revenue / 100000) - (state.divide / 10);
+
+    // 2. Social Parameters
+    state.divide += (3 + state.levels.algo * 4) / (state.levels.mod * 1.2);
+    state.mental -= (1 + state.levels.algo * 1.5);
+    if(state.levels.lobby > 0) state.divide -= state.levels.lobby * 2;
+
+    // 3. Game Over Checks
+    if(state.cash < 0) triggerGameOver("BANKRUPTCY: 資金が底をつきました。あなたは解任されました。");
+    else if(state.divide >= 100) triggerGameOver("CIVIL WAR: 社会が完全に崩壊しました。人類の敗北です。");
+    else if(state.week >= 18) triggerGameOver("ENDING: あなたは18週間生き残りました。これが世界の終着点です。");
+    else startInterlude();
+}
+
+function startInterlude() {
+    state.dialogueIdx = 0;
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'flex';
+    
+    // Create Dialogue Queue
+    state.dialogueQueue = [
+        { name: "FINANCIAL REPORT", img: IMG_SYSTEM, text: `今週の収益: +$${state.revenue.toLocaleString()} / 運営費: -$${state.cost.toLocaleString()}` }
+    ];
+    const scenario = scenarioData[state.week];
+    if(scenario) state.dialogueQueue.push(scenario);
+
+    renderDialogue();
+}
+
+function renderDialogue() {
+    const d = state.dialogueQueue[state.dialogueIdx];
+    document.getElementById('speaker-name').innerText = d.name;
+    document.getElementById('speaker-img').src = d.img;
+    document.getElementById('dialogue-text').innerText = d.text;
+}
+
+function nextDialogue() {
+    state.dialogueIdx++;
+    if(state.dialogueIdx < state.dialogueQueue.length) {
+        renderDialogue();
+    } else {
+        document.getElementById('dialogue-next-btn').style.display = 'none';
+        document.getElementById('invest-menu').style.display = 'block';
+    }
+}
+
+function invest(type) {
+    const investCost = 200000;
+    if(state.cash < investCost) { alert("資金が不足しています。"); return; }
+    
+    state.cash -= investCost;
+    state.levels[type]++;
+    closeInterlude();
+}
+
+function closeInterlude() {
+    document.getElementById('overlay').style.display = 'none';
+    document.getElementById('invest-menu').style.display = 'none';
+    document.getElementById('dialogue-next-btn').style.display = 'block';
+    state.week++;
+    state.cost += 30000; // Scaled operational cost
+    updateUI();
+    addInboxMessage();
+}
+
+function triggerGameOver(reason) {
+    state.isGameOver = true;
+    document.getElementById('overlay').style.display = 'flex';
+    document.getElementById('speaker-name').innerText = "SYSTEM CRITICAL";
+    document.getElementById('speaker-img').src = IMG_SYSTEM;
+    document.getElementById('dialogue-text').innerText = reason + "\n\n(F5キーで再起動)";
+    document.getElementById('dialogue-next-btn').style.display = 'none';
+}
+
+// --- Live Feed System ---
+function spawnTweet() {
+    if(state.isGameOver) return;
+    const tl = document.getElementById('timeline');
+    const era = state.week < 5 ? 'blue' : (state.week < 12 ? 'yellow' : 'red');
+    const list = tweets[era];
+    const text = list[Math.floor(Math.random() * list.length)];
+    
+    const div = document.createElement('div');
+    div.className = 'tweet';
+    if(era === 'yellow') div.style.borderColor = 'var(--accent-yellow)';
+    if(era === 'red') { div.style.borderColor = 'var(--accent-red)'; div.style.color = 'var(--accent-red)'; }
+    
+    div.innerText = `@User_${Math.floor(Math.random()*999)}: ${text}`;
+    tl.prepend(div);
+    if(tl.children.length > 12) tl.lastChild.remove();
+}
+
+function addInboxMessage() {
+    const inbox = document.getElementById('inbox');
+    const sc = scenarioData[state.week - 1];
+    if(!sc) return;
+    
+    const div = document.createElement('div');
+    div.className = 'msg-card';
+    div.innerHTML = `
+        <img src="${sc.img}" class="msg-icon">
+        <div class="msg-body">
+            <strong>${sc.name}</strong> <small style="color:#555;">WEEK ${state.week-1}</small><br>
+            ${sc.text}
+        </div>
+    `;
+    inbox.prepend(div);
+}
+
+// Init
+setInterval(spawnTweet, 2500);
+updateUI();
+addInboxMessage();
+
+</script>
+</body>
+</html>
