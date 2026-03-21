@@ -181,10 +181,55 @@
     0% { opacity: 0.8; text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4); }
     100% { opacity: 1; text-shadow: 5px 2px 0px rgba(255,0,60,0.9), -5px -2px 0px rgba(0,255,0,0.6); }
 }
+        /* --- 追加：スライド画面のデザイン --- */
+#intro-slides {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #020204; z-index: 2500;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    text-align: center;
+}
+
+.slide-content {
+    display: flex; flex-direction: column; align-items: center;
+    animation: fadeIn 0.8s ease;
+}
+
+#slide-img {
+    max-width: 600px; max-height: 350px; 
+    object-fit: contain; /* 画像の比率を崩さずに表示 */
+    border: 1px solid var(--border-dim);
+    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+    margin-bottom: 30px;
+}
+
+#slide-text {
+    font-size: 1.8em; color: var(--text-main);
+    max-width: 800px; line-height: 1.5;
+    text-shadow: 0 0 5px rgba(255,255,255,0.3);
+    margin-bottom: 40px;
+    min-height: 3em; /* テキストが短くてもボタンの位置を安定させる */
+}
+
+#slide-btn {
+    font-size: 1.2em; padding: 10px 40px;
+    background: transparent; color: var(--accent-blue);
+    border: 2px solid var(--accent-blue);
+    cursor: pointer; transition: 0.3s;
+}
+#slide-btn:hover {
+    background: var(--accent-blue); color: #000;
+}
     </style>
 </head>
 <body>
     <div id="title-screen">
+        <div id="intro-slides" style="display: none;">
+    <div class="slide-content">
+        <img id="slide-img" src="" alt="slide image">
+        <div id="slide-text">メッセージがここに入ります</div>
+    </div>
+    <button id="slide-btn" onclick="nextSlide()">NEXT [進む]</button>
+</div>
     <div class="noise-overlay"></div>
     <h1 class="creepy-title">SYNAPSE<br><span class="subtitle">ARCHITECT_SYSTEM</span></h1>
     <button class="start-btn" onclick="startGame()">SYSTEM BOOT [ゲームスタート]</button>
@@ -256,21 +301,66 @@
         <button id="dialogue-next-btn" onclick="nextDialogue()" style="margin-top: 20px; width: 100%;">CONTINUE...</button>
     </div>
 </div>
+// --- 追加・書き換え：プロローグスライドのデータと処理 ---
 
+// ★ ここを編集して、スライドの画像とテキストを自由に変更してください！
+const introSlidesData = [
+    { img: "https://placehold.co/600x350/111/0ff?text=SLIDE+1", text: "かつて、インターネットは希望の光だった。" },
+    { img: "https://placehold.co/600x350/111/0ff?text=SLIDE+2", text: "人々は繋がり、理解し合えると信じられていた。" },
+    { img: "https://placehold.co/600x350/111/ff0?text=SLIDE+3", text: "しかし、我々は気付いてしまった。" },
+    { img: "https://placehold.co/600x350/111/f00?text=SLIDE+4", text: "『怒り』と『憎悪』こそが、最も利益を生むということに。" },
+    { img: "https://placehold.co/600x350/000/f00?text=SLIDE+5", text: "さあ、最高に狂った世界（プラットフォーム）を創り上げよう。" }
+];
+
+let currentSlideIndex = 0;
+
+// タイトル画面の「START」ボタンを押したときの処理
+function startGame() {
+    document.getElementById('title-screen').style.display = 'none';
+    document.getElementById('intro-slides').style.display = 'flex';
+    currentSlideIndex = 0;
+    renderSlide();
+}
+
+// スライドの画面更新
+function renderSlide() {
+    const data = introSlidesData[currentSlideIndex];
+    document.getElementById('slide-img').src = data.img;
+    document.getElementById('slide-text').innerHTML = data.text; // HTMLタグ(<br>など)も使えます
+    
+    // 最後のスライドになったらボタンの文字を変える
+    const btn = document.getElementById('slide-btn');
+    if (currentSlideIndex === introSlidesData.length - 1) {
+        btn.innerText = "SYSTEM BOOT [管理画面へ]";
+        btn.style.borderColor = "var(--accent-red)";
+        btn.style.color = "var(--accent-red)";
+    } else {
+        btn.innerText = "NEXT [次へ]";
+        btn.style.borderColor = "var(--accent-blue)";
+        btn.style.color = "var(--accent-blue)";
+    }
+}
+
+// 「NEXT」ボタンを押したときの処理
+function nextSlide() {
+    currentSlideIndex++;
+    
+    if (currentSlideIndex < introSlidesData.length) {
+        // まだスライドが残っている場合
+        renderSlide();
+    } else {
+        // 5枚目が終わった場合：ゲーム画面へ移行
+        document.getElementById('intro-slides').style.display = 'none';
+        document.getElementById('game-view').style.display = 'grid';
+        
+        // 開始演出（画面が少しバグる）
+        document.body.classList.add('glitch');
+        setTimeout(() => document.body.classList.remove('glitch'), 500);
+    }
+}
 <script>
     // --- 追加：ゲームスタート処理 ---
-function startGame() {
-    // タイトル画面を消す
-    document.getElementById('title-screen').style.display = 'none';
-    
-    // ゲーム画面を表示する（CSSのgridレイアウトを復活させる）
-    document.getElementById('game-view').style.display = 'grid';
-    
-    // オマケ：開始時に少しだけ画面を揺らす
-    document.body.classList.add('glitch');
-    setTimeout(() => document.body.classList.remove('glitch'), 500);
-}
-/* --- Core Game Logic --- */
+
 
 // --- Assets (Replace with your GitHub links) ---
 const IMG_AOI_BLUE = "./aoi_normal.png";
