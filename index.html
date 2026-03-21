@@ -301,7 +301,12 @@
         <button id="dialogue-next-btn" onclick="nextDialogue()" style="margin-top: 20px; width: 100%;">CONTINUE...</button>
     </div>
 </div>
-// --- 追加・書き換え：プロローグスライドのデータと処理 ---
+
+
+
+
+<script>
+    // --- 追加・書き換え：プロローグスライドのデータと処理 ---
 
 // ★ ここを編集して、スライドの画像とテキストを自由に変更してください！
 const introSlidesData = [
@@ -358,7 +363,6 @@ function nextSlide() {
         setTimeout(() => document.body.classList.remove('glitch'), 500);
     }
 }
-<script>
     // --- 追加：ゲームスタート処理 ---
 
 
