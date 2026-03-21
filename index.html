@@ -272,6 +272,13 @@ function updateUI() {
     document.getElementById('lv-mod').innerText = state.levels.mod;
     document.getElementById('lv-algo').innerText = state.levels.algo;
     document.getElementById('lv-lobby').innerText = state.levels.lobby;
+    // 追加：リッチな時の隠し演出
+function checkRichBonus() {
+    if (state.cash >= 2000000 && state.week % 4 === 0) {
+        console.log("CEO: 君の集金能力には感服するよ。ボーナスを検討しよう。");
+        // ここにさらに演出を足すことも可能です
+    }
+}
 
     // Danger UI
     if(state.cash < 100000) document.getElementById('cash-val').classList.add('danger');
