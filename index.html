@@ -189,9 +189,18 @@
     text-align: center;
 }
 
+/* スライド全体のフェードアニメーション */
 .slide-content {
-    display: flex; flex-direction: column; align-items: center;
-    animation: fadeIn 0.8s ease;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center;
+    transition: opacity 0.5s ease; /* 0.5秒かけてふわっと変わる */
+}
+
+/* 一時的に透明にするためのクラス */
+.slide-fade-out {
+    opacity: 0;
+}
 }
 
 #slide-img {
