@@ -141,11 +141,56 @@
             80% { transform: translate(2px, -2px); }
             100% { transform: translate(0); }
         }
+        /* --- 追加：ホーム画面のデザイン --- */
+#title-screen {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: #020204; z-index: 3000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+}
+
+/* 画面全体の薄いノイズ */
+.noise-overlay {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 242, 255, 0.03) 2px, rgba(0, 242, 255, 0.03) 4px);
+    pointer-events: none;
+}
+
+/* 不気味に発光するタイトル */
+.creepy-title {
+    color: var(--accent-blue); font-size: 5em; text-align: center; margin: 0;
+    letter-spacing: 10px; line-height: 1.1;
+    text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4); /* 赤と緑のズレで不気味さを演出 */
+    animation: titlePulse 3s infinite alternate;
+}
+.subtitle { font-size: 0.4em; color: var(--accent-red); letter-spacing: 20px; }
+
+/* 機械的なスタートボタン */
+.start-btn {
+    margin-top: 60px; font-size: 1.5em; padding: 15px 50px;
+    background: transparent; color: var(--text-main);
+    border: 1px solid var(--accent-red);
+    box-shadow: 0 0 10px rgba(255,0,60,0.2) inset;
+    transition: all 0.3s ease; position: relative; z-index: 10;
+}
+.start-btn:hover { 
+    background: var(--accent-red); color: #000; 
+    box-shadow: 0 0 20px var(--accent-red); letter-spacing: 2px;
+}
+
+@keyframes titlePulse {
+    0% { opacity: 0.8; text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4); }
+    100% { opacity: 1; text-shadow: 5px 2px 0px rgba(255,0,60,0.9), -5px -2px 0px rgba(0,255,0,0.6); }
+}
     </style>
 </head>
 <body>
+    <div id="title-screen">
+    <div class="noise-overlay"></div>
+    <h1 class="creepy-title">SYNAPSE<br><span class="subtitle">ARCHITECT_SYSTEM</span></h1>
+    <button class="start-btn" onclick="startGame()">SYSTEM BOOT [ゲームスタート]</button>
+</div>
 
-<div id="game-view">
+<div id="game-view" style="display: none;">
     <header>
         <div style="font-size: 1.5em; letter-spacing: 2px;">SYNAPSE ARCHITECT <span id="era-tag" style="font-size: 0.6em; vertical-align: middle;">[PHASE: BLUE]</span></div>
         <div id="clock">WEEK 01 / 18</div>
@@ -213,6 +258,18 @@
 </div>
 
 <script>
+    // --- 追加：ゲームスタート処理 ---
+function startGame() {
+    // タイトル画面を消す
+    document.getElementById('title-screen').style.display = 'none';
+    
+    // ゲーム画面を表示する（CSSのgridレイアウトを復活させる）
+    document.getElementById('game-view').style.display = 'grid';
+    
+    // オマケ：開始時に少しだけ画面を揺らす
+    document.body.classList.add('glitch');
+    setTimeout(() => document.body.classList.remove('glitch'), 500);
+}
 /* --- Core Game Logic --- */
 
 // --- Assets (Replace with your GitHub links) ---
