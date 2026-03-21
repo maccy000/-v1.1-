@@ -203,11 +203,15 @@
 }
 }
 
+/* スライド画像のデザイン修正 */
 #slide-img {
-    max-width: 600px; max-height: 350px; 
-    object-fit: contain; /* 画像の比率を崩さずに表示 */
-    border: 1px solid var(--border-dim);
-    box-shadow: 0 0 15px rgba(0, 242, 255, 0.1);
+    width: 100%;            /* 横幅を親要素に合わせる */
+    max-width: 800px;       /* どんなに大きくても800pxまで */
+    height: 450px;          /* 高さを固定（ここはお好みで） */
+    object-fit: contain;    /* 画像の比率を保ったまま、枠内に収める */
+    background: #000;       /* 画像が細長い場合に横を黒で埋める */
+    border: 1px solid var(--accent-blue);
+    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
     margin-bottom: 30px;
 }
 
