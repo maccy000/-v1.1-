@@ -2,19 +2,18 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <title>SYNAPSE SOCIAL: ARCHITECT - Final Demo</title>
+    <title>SYNAPSE SOCIAL: ARCHITECT</title>
     <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
     <style>
         /* --- CSS: Cyber-Visual Identity --- */
         :root {
             --bg-color: #050508;
-            --panel-bg: #0d1117;
+            --panel-bg: rgba(0, 0, 0, 0.6);
             --accent-blue: #00f2ff;
             --accent-yellow: #f1c40f;
             --accent-red: #ff003c;
             --text-main: #c9d1d9;
-            --border-dim: #30363d;
-            --glitch-color: rgba(255, 0, 60, 0.3);
+            --border-dim: #333;
         }
 
         body {
@@ -22,116 +21,131 @@
             color: var(--text-main);
             font-family: 'DotGothic16', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 0;
             overflow: hidden;
             transition: background 2s ease;
         }
 
-        /* --- Layout --- */
+        /* --- 追加：ホーム画面のデザイン --- */
+        #title-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #020204; z-index: 3000;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+
+        .noise-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 242, 255, 0.03) 2px, rgba(0, 242, 255, 0.03) 4px);
+            pointer-events: none;
+        }
+
+        .creepy-title {
+            color: var(--accent-blue); font-size: 5em; text-align: center; margin: 0;
+            letter-spacing: 10px; line-height: 1.1;
+            text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4);
+            animation: titlePulse 3s infinite alternate;
+        }
+        .subtitle { font-size: 0.4em; color: var(--accent-red); letter-spacing: 20px; }
+
+        .start-btn {
+            margin-top: 60px; font-size: 1.5em; padding: 15px 50px;
+            background: transparent; color: var(--text-main);
+            border: 1px solid var(--accent-red);
+            box-shadow: 0 0 10px rgba(255,0,60,0.2) inset;
+            transition: all 0.3s ease; position: relative; z-index: 10; cursor: pointer;
+        }
+        .start-btn:hover { 
+            background: var(--accent-red); color: #000; 
+            box-shadow: 0 0 20px var(--accent-red); letter-spacing: 2px;
+        }
+
+        @keyframes titlePulse {
+            0% { opacity: 0.8; text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4); }
+            100% { opacity: 1; text-shadow: 5px 2px 0px rgba(255,0,60,0.9), -5px -2px 0px rgba(0,255,0,0.6); }
+        }
+
+        /* --- 追加：スライド画面のデザイン --- */
+        #intro-slides {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #020204; z-index: 2500;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            text-align: center;
+        }
+        .slide-content { display: flex; flex-direction: column; align-items: center; transition: opacity 0.5s ease; }
+        .slide-fade-out { opacity: 0; }
+
+        #slide-img {
+            width: 100%; max-width: 800px; height: 450px;
+            object-fit: contain; background: #000;
+            border: 1px solid var(--accent-blue);
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.2); margin-bottom: 30px;
+        }
+
+        #slide-text {
+            font-size: 1.8em; color: var(--text-main); max-width: 800px; line-height: 1.5;
+            text-shadow: 0 0 5px rgba(255,255,255,0.3); margin-bottom: 40px; min-height: 3em;
+        }
+
+        #slide-btn {
+            font-size: 1.2em; padding: 10px 40px; background: transparent; color: var(--accent-blue);
+            border: 2px solid var(--accent-blue); cursor: pointer; transition: 0.3s;
+        }
+        #slide-btn:hover { background: var(--accent-blue); color: #000; }
+
+        /* --- ゲーム本編のレイアウト再構築 --- */
         #game-view {
+            width: 100%; max-width: 1400px; margin: 0 auto;
+            display: flex; flex-direction: column; height: 100vh;
+            padding: 20px; box-sizing: border-box;
+        }
+
+        .game-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--accent-blue); margin-bottom: 20px; padding-bottom: 10px;
+        }
+        .game-header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; }
+        .phase-tag { color: var(--accent-blue); font-size: 1rem; }
+        .week-display { font-size: 1.2rem; letter-spacing: 2px; }
+
+        .game-container {
             display: grid;
-            grid-template-columns: 280px 1fr 320px;
-            grid-template-rows: 60px 1fr;
-            gap: 15px;
-            height: 94vh;
-            max-width: 1400px;
-            margin: 0 auto;
+            grid-template-columns: 280px 1fr 280px; 
+            gap: 20px; flex-grow: 1; min-height: 0;
         }
 
-        header {
-            grid-column: 1 / -1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid var(--border-dim);
-            padding: 0 15px;
-        }
-
-        .panel {
-            background: var(--panel-bg);
-            border: 1px solid var(--border-dim);
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        .left-panel, .center-panel, .right-panel {
+            background: var(--panel-bg); border: 1px solid var(--border-dim);
+            display: flex; flex-direction: column; overflow: hidden;
         }
 
         .panel-header {
-            background: #161b22;
-            padding: 8px 12px;
-            font-size: 0.9em;
-            border-bottom: 1px solid var(--border-dim);
-            color: var(--accent-blue);
+            background: rgba(0, 242, 255, 0.1); color: var(--accent-blue);
+            padding: 10px; border-bottom: 1px solid var(--accent-blue);
+            font-weight: bold; text-align: center; letter-spacing: 1px;
         }
 
-        /* --- Stats Sidebar --- */
-        #stats-panel { font-size: 0.95em; }
-        .stat-box { padding: 12px; border-bottom: 1px solid var(--border-dim); }
-        .stat-label { font-size: 0.8em; color: #8b949e; display: block; }
-        .stat-value { font-size: 1.3em; color: var(--accent-blue); }
-        .danger { color: var(--accent-red) !important; animation: blink 1s infinite; }
+        .status-panel { padding: 15px; }
+        .status-panel h3 { margin-top: 0; color: var(--accent-blue); border-bottom: 1px dotted var(--accent-blue); padding-bottom: 5px; }
+        .status-list { list-style: none; padding: 0; margin: 0; font-size: 1.1rem; line-height: 1.8; }
+        .danger-text { color: var(--accent-red); }
+        .safe-text { color: #0f0; }
 
-        .gauge-container { height: 10px; background: #000; margin-top: 5px; border: 1px solid #333; }
-        .gauge-fill { height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.1, 0.7, 0.1, 1); }
-
-        /* --- Main Feed --- */
-        #main-feed { padding: 0; }
-        #inbox { flex: 1; overflow-y: auto; padding: 15px; }
-        .msg-card {
-            background: #161b22;
-            border: 1px solid var(--border-dim);
-            margin-bottom: 12px;
-            display: flex;
-            animation: fadeIn 0.4s ease;
-        }
-        .msg-icon { width: 60px; height: 60px; image-rendering: pixelated; border-right: 1px solid var(--border-dim); }
-        .msg-body { padding: 10px; font-size: 0.9em; }
-
-        /* --- Timeline (SNS) --- */
-        #timeline { flex: 1; overflow-y: hidden; padding: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .tweet {
-            font-size: 0.8em;
-            padding: 8px;
-            border-radius: 4px;
-            border-left: 3px solid var(--accent-blue);
-            background: rgba(255,255,255,0.03);
-            animation: tweetSlide 0.3s ease-out;
+        .inbox-content, .feed-content { padding: 20px; flex-grow: 1; overflow-y: auto; }
+        
+        .feed-content p {
+            margin: 0 0 10px 0; padding: 10px; border-left: 3px solid var(--accent-blue);
+            background: rgba(255,255,255,0.03); font-size: 0.9rem; color: #ccc;
+            animation: fadeIn 0.3s ease-out;
         }
 
-        /* --- Interlude & Dialogue --- */
-        #overlay {
-            position: fixed; top:0; left:0; width:100%; height:100%;
-            background: black; z-index: 1000;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
+        .action-btn {
+            background: transparent; color: var(--accent-blue);
+            border: 1px solid var(--accent-blue); padding: 15px; margin: 10px;
+            cursor: pointer; font-family: inherit; font-size: 1.1rem; transition: 0.2s;
         }
-        #dialogue-ui {
-            width: 700px; background: #0d1117; border: 2px solid white;
-            padding: 25px; position: relative;
-        }
-        .speaker-img { width: 150px; height: 150px; image-rendering: pixelated; border: 4px solid #30363d; margin-bottom: 15px; }
-        #speaker-name { font-size: 1.2em; color: var(--accent-yellow); margin-bottom: 10px; }
-        #dialogue-text { line-height: 1.6; min-height: 3em; }
+        .action-btn:hover { background: var(--accent-blue); color: #000; }
 
-        /* --- Investment UI --- */
-        #invest-menu { display: none; margin-top: 20px; text-align: center; }
-        .invest-btn {
-            display: inline-block; width: 180px; padding: 15px; margin: 10px;
-            border: 1px solid var(--accent-blue); cursor: pointer; transition: 0.3s;
-        }
-        .invest-btn:hover { background: var(--accent-blue); color: black; }
-        .invest-btn.disabled { opacity: 0.3; cursor: not-allowed; }
-
-        /* --- Utility --- */
-        button {
-            background: transparent; color: var(--accent-blue); border: 2px solid var(--accent-blue);
-            font-family: inherit; padding: 10px 20px; cursor: pointer;
-        }
-        button:hover { background: var(--accent-blue); color: black; }
-        .next-week-btn { width: 100%; padding: 20px; font-size: 1.2em; border-top: 2px solid var(--border-dim); }
-
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } }
-        @keyframes tweetSlide { from { opacity: 0; transform: translateX(20px); } }
-        @keyframes blink { 50% { opacity: 0.3; } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateX(20px); } }
         .glitch { animation: glitchAnim 0.2s infinite; }
         @keyframes glitchAnim {
             0% { transform: translate(0); }
@@ -141,198 +155,10 @@
             80% { transform: translate(2px, -2px); }
             100% { transform: translate(0); }
         }
-        /* --- 追加：ホーム画面のデザイン --- */
-#title-screen {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #020204; z-index: 3000;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-}
-
-/* 画面全体の薄いノイズ */
-.noise-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0, 242, 255, 0.03) 2px, rgba(0, 242, 255, 0.03) 4px);
-    pointer-events: none;
-}
-
-/* 不気味に発光するタイトル */
-.creepy-title {
-    color: var(--accent-blue); font-size: 5em; text-align: center; margin: 0;
-    letter-spacing: 10px; line-height: 1.1;
-    text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4); /* 赤と緑のズレで不気味さを演出 */
-    animation: titlePulse 3s infinite alternate;
-}
-.subtitle { font-size: 0.4em; color: var(--accent-red); letter-spacing: 20px; }
-
-/* 機械的なスタートボタン */
-.start-btn {
-    margin-top: 60px; font-size: 1.5em; padding: 15px 50px;
-    background: transparent; color: var(--text-main);
-    border: 1px solid var(--accent-red);
-    box-shadow: 0 0 10px rgba(255,0,60,0.2) inset;
-    transition: all 0.3s ease; position: relative; z-index: 10;
-}
-.start-btn:hover { 
-    background: var(--accent-red); color: #000; 
-    box-shadow: 0 0 20px var(--accent-red); letter-spacing: 2px;
-}
-
-@keyframes titlePulse {
-    0% { opacity: 0.8; text-shadow: 3px 0px 0px rgba(255,0,60,0.7), -3px 0px 0px rgba(0,255,0,0.4); }
-    100% { opacity: 1; text-shadow: 5px 2px 0px rgba(255,0,60,0.9), -5px -2px 0px rgba(0,255,0,0.6); }
-}
-        /* --- 追加：スライド画面のデザイン --- */
-#intro-slides {
-    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-    background: #020204; z-index: 2500;
-    display: flex; flex-direction: column; justify-content: center; align-items: center;
-    text-align: center;
-}
-
-/* スライド全体のフェードアニメーション */
-.slide-content {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center;
-    transition: opacity 0.5s ease; /* 0.5秒かけてふわっと変わる */
-}
-
-/* 一時的に透明にするためのクラス */
-.slide-fade-out {
-    opacity: 0;
-}
-}
-
-/* スライド画像のデザイン修正 */
-#slide-img {
-    width: 100%;            /* 横幅を親要素に合わせる */
-    max-width: 800px;       /* どんなに大きくても800pxまで */
-    height: 450px;          /* 高さを固定（ここはお好みで） */
-    object-fit: contain;    /* 画像の比率を保ったまま、枠内に収める */
-    background: #000;       /* 画像が細長い場合に横を黒で埋める */
-    border: 1px solid var(--accent-blue);
-    box-shadow: 0 0 20px rgba(0, 242, 255, 0.2);
-    margin-bottom: 30px;
-}
-
-#slide-text {
-    font-size: 1.8em; color: var(--text-main);
-    max-width: 800px; line-height: 1.5;
-    text-shadow: 0 0 5px rgba(255,255,255,0.3);
-    margin-bottom: 40px;
-    min-height: 3em; /* テキストが短くてもボタンの位置を安定させる */
-}
-
-#slide-btn {
-    font-size: 1.2em; padding: 10px 40px;
-    background: transparent; color: var(--accent-blue);
-    border: 2px solid var(--accent-blue);
-    cursor: pointer; transition: 0.3s;
-}
-#slide-btn:hover {
-    background: var(--accent-blue); color: #000;
-}
-        /* --- ステータスパネルのデザイン --- */
-/* --- ゲーム本編のレイアウト再構築 --- */
-#game-view {
-    width: 100%;
-    max-width: 1400px;
-    margin: 0 auto;
-    display: flex;
-    flex-direction: column;
-    height: 90vh; /* 画面に収める */
-    padding: 20px;
-    box-sizing: border-box;
-}
-
-/* ヘッダー */
-.game-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 2px solid var(--accent-blue);
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-}
-.game-header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 2px; }
-.phase-tag { color: var(--accent-blue); font-size: 1rem; }
-.week-display { font-size: 1.2rem; letter-spacing: 2px; }
-
-/* 3カラムコンテナ */
-.game-container {
-    display: grid;
-    grid-template-columns: 280px 1fr 280px; /* 左280px、中央残り全部、右280px */
-    gap: 20px;
-    flex-grow: 1;
-    min-height: 0;
-}
-
-/* パネル共通デザイン */
-.left-panel, .center-panel, .right-panel {
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid #333;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.panel-header {
-    background: rgba(0, 242, 255, 0.1);
-    color: var(--accent-blue);
-    padding: 10px;
-    border-bottom: 1px solid var(--accent-blue);
-    font-weight: bold;
-    text-align: center;
-    letter-spacing: 1px;
-}
-
-/* ステータス部分 */
-.status-panel { padding: 15px; }
-.status-panel h3 { margin-top: 0; color: var(--accent-blue); border-bottom: 1px dotted var(--accent-blue); padding-bottom: 5px; }
-.status-list { list-style: none; padding: 0; margin: 0; line-height: 2; font-size: 1.1rem; }
-.danger-text { color: var(--accent-red); }
-.safe-text { color: #0f0; }
-
-/* インボックス＆フィードの中身 */
-.inbox-content, .feed-content {
-    padding: 20px;
-    flex-grow: 1;
-    overflow-y: auto;
-}
-.feed-content p {
-    margin: 0 0 10px 0;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #333;
-    font-size: 0.9rem;
-    color: #ccc;
-}
-
-/* アクションボタン */
-.action-btn {
-    background: transparent;
-    color: var(--accent-blue);
-    border: 1px solid var(--accent-blue);
-    padding: 15px;
-    margin: 10px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 1.1rem;
-    transition: 0.2s;
-}
-.action-btn:hover { background: var(--accent-blue); color: #000; }
-.status-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    font-size: 1.1rem;
-    line-height: 1.8;
-}
-
-.danger-text { color: var(--accent-red); }
-.safe-text { color: #0f0; /* 健全性は緑色 */ }
     </style>
 </head>
 <body>
+
     <div id="title-screen">
         <div class="noise-overlay"></div>
         <h1 class="creepy-title">SYNAPSE<br><span class="subtitle">ARCHITECT_SYSTEM</span></h1>
@@ -341,67 +167,52 @@
 
     <div id="intro-slides" style="display: none;">
         <div class="slide-content">
-           
-
-<img id="slide-img" src="" alt="slide image" style="width: 100%; max-width: 600px; max-height: 350px; object-fit: contain; margin-bottom: 20px;">
+            <img id="slide-img" src="" alt="slide image">
             <div id="slide-text">メッセージがここに入ります</div>
         </div>
         <button id="slide-btn" onclick="nextSlide()">NEXT [進む]</button>
     </div>
 
-<div id="game-view" style="display: none;">
-    <header class="game-header">
-        <h1>SYNAPSE ARCHITECT <span class="phase-tag">[PHASE: BLUE]</span></h1>
-        <div class="week-display">WEEK <span id="header-week">01</span> / 18</div>
-    </header>
+    <div id="game-view" style="display: none;">
+        <header class="game-header">
+            <h1>SYNAPSE ARCHITECT <span class="phase-tag">[PHASE: BLUE]</span></h1>
+            <div class="week-display">WEEK <span id="header-week">01</span> / 18</div>
+        </header>
 
-    <div class="game-container">
-        
-        <aside class="left-panel">
-            <div class="status-panel">
-                <h3>SYSTEM STATUS</h3>
-                <ul class="status-list">
-                    <li>TOTAL CASH : $<span id="ui-cash">5000</span></li>
-                    <li>NEXT COST  : $<span id="ui-cost">300</span> /w</li>
-                    <li>STOCK PRICE: $<span id="ui-stock">30.00</span></li>
-                    <li class="danger-text">SOCIAL DIVIDE: <span id="ui-divide">15</span>%</li>
-                    <li class="safe-text">USER MENTAL  : <span id="ui-mental">85</span>%</li>
-                </ul>
-            </div>
-        </aside>
+        <div class="game-container">
+            <aside class="left-panel">
+                <div class="status-panel">
+                    <h3>SYSTEM STATUS</h3>
+                    <ul class="status-list">
+                        <li>TOTAL CASH : $<span id="ui-cash">5000</span></li>
+                        <li>NEXT COST  : $<span id="ui-cost">300</span> /w</li>
+                        <li>STOCK PRICE: $<span id="ui-stock">30.00</span></li>
+                        <li class="danger-text">SOCIAL DIVIDE: <span id="ui-divide">15</span>%</li>
+                        <li class="safe-text">USER MENTAL  : <span id="ui-mental">85</span>%</li>
+                    </ul>
+                </div>
+            </aside>
 
-        <main class="center-panel">
-            <div class="panel-header">ADMIN INBOX (ACTION REQUIRED)</div>
-            <div id="inbox-content" class="inbox-content">
-                <p style="color: #666; text-align: center; margin-top: 50px;">
-                    SYSTEM BOOTING...<br>WAITING FOR NEW EVENTS...
-                </p>
-            </div>
-            <button id="end-turn-btn" class="action-btn" onclick="endTurn()">EXECUTE & TURN END</button>
-        </main>
+            <main class="center-panel">
+                <div class="panel-header">ADMIN INBOX (ACTION REQUIRED)</div>
+                <div id="inbox-content" class="inbox-content">
+                    <p style="color: #666; text-align: center; margin-top: 50px;">
+                        SYSTEM BOOTING...<br>WAITING FOR NEW EVENTS...
+                    </p>
+                </div>
+                <button id="end-turn-btn" class="action-btn" onclick="endTurn()">EXECUTE & TURN END</button>
+            </main>
 
-        <aside class="right-panel">
-            <div class="panel-header">LIVE FEED: WORLD REACTION</div>
-            <div id="live-feed" class="feed-content">
-                <p>@User_187: ここの猫動画、最高すぎる。</p>
-                <p>@User_259: みんな優しいね。</p>
-                <p>@User_797: Synapse使いやすくて草</p>
-            </div>
-        </aside>
-
+            <aside class="right-panel">
+                <div class="panel-header">LIVE FEED: WORLD REACTION</div>
+                <div id="live-feed" class="feed-content">
+                    </div>
+            </aside>
+        </div>
     </div>
 
-          
-
-   
-
-
-
-
 <script>
-    // --- 追加・書き換え：プロローグスライドのデータと処理 ---
-
-// ★ ここを編集して、スライドの画像とテキストを自由に変更してください！
+// --- スライドデータ ---
 const introSlidesData = [
     { img: "slide1.png", text: "かつて、インターネットは自由で希望の光だった。" },
     { img: "slide2.png", text: "しかし、気づいてしまった。" },
@@ -412,7 +223,6 @@ const introSlidesData = [
 
 let currentSlideIndex = 0;
 
-// タイトル画面の「START」ボタンを押したときの処理
 function startGame() {
     document.getElementById('title-screen').style.display = 'none';
     document.getElementById('intro-slides').style.display = 'flex';
@@ -420,7 +230,6 @@ function startGame() {
     renderSlide();
 }
 
-// スライドの画面更新
 function renderSlide() {
     const data = introSlidesData[currentSlideIndex];
     document.getElementById('slide-img').src = data.img;
@@ -438,90 +247,68 @@ function renderSlide() {
     }
 }
 
-// 「NEXT」ボタンを押したときの処理（アニメーション付き）
 function nextSlide() {
     const slideContent = document.querySelector('.slide-content');
-    
-    // 1. まず画面を透明にする
     slideContent.classList.add('slide-fade-out');
 
-    // 2. 0.5秒待ってから切り替え
     setTimeout(() => {
         currentSlideIndex++;
-
         if (currentSlideIndex < introSlidesData.length) {
             renderSlide();
-            // 3. 透明を解除して表示させる
             slideContent.classList.remove('slide-fade-out');
         } else {
-            // 最後のスライド終了
             document.getElementById('intro-slides').style.display = 'none';
-            document.getElementById('game-view').style.display = 'grid';
-            updateUI(); // 画面が表示されたら数値を反映する
-            // updateUI() の中にこれを追加
-document.getElementById('header-week').innerText = state.week.toString().padStart(2, '0'); // 1を01にする小技
+            document.getElementById('game-view').style.display = 'flex'; // gridからflexに変更
+            updateUI();
             document.body.classList.add('glitch');
             setTimeout(() => document.body.classList.remove('glitch'), 500);
         }
     }, 500);
 }
 
-// --- Assets ---
-const IMG_AOI_BLUE = "./aoi_normal.png";
-const IMG_CEO_BLUE = "./ceo_normal.png";
-const IMG_RICHARD = "https://placehold.co/150x150/222/f00?text=RICHARD";
-const IMG_SYSTEM = "https://placehold.co/150x150/000/0ff?text=SYS";
-// --- ゲームのパラメーター管理（上書き） ---
+// --- ゲーム状態 ---
 let state = {
-    week: 1,              // 現在の週
-    cash: 5000,           // 資金
-    cost: 300,            // 維持費
-    stock: 30.0,          // 株価
-    divide: 15,           // 分断率
-    mental: 85,           // 健全性（100 - 分断率）
-    aoiTrust: 40,         // アオイの好感度（裏パラメーター）
+    week: 1,
+    cash: 5000,
+    cost: 300,
+    stock: 30.0,
+    divide: 15,
+    mental: 85,
+    aoiTrust: 40,
     isGameOver: false
 };
 
-// --- 画面のUIを最新の数字に更新する関数（追加） ---
+// --- UI更新 ---
 function updateUI() {
-    document.getElementById('ui-week').innerText = state.week;
+    document.getElementById('header-week').innerText = state.week.toString().padStart(2, '0');
     document.getElementById('ui-cash').innerText = Math.floor(state.cash);
     document.getElementById('ui-cost').innerText = Math.floor(state.cost);
-    document.getElementById('ui-stock').innerText = state.stock.toFixed(2); // 小数点2桁まで表示
+    document.getElementById('ui-stock').innerText = state.stock.toFixed(2);
     document.getElementById('ui-divide').innerText = state.divide;
     document.getElementById('ui-mental').innerText = state.mental;
 }
 
-// --- ターンの終了（決算と判定）処理（追加） ---
+// --- ターン終了処理 ---
 function endTurn() {
     if (state.isGameOver) return;
 
-    // 1. 収支計算
+    // 収支計算など
     let baseRevenue = state.stock * 10;
     state.cash += baseRevenue;
     state.cash -= Math.floor(state.cost);
 
-    // 2. パラメーターの限界値設定＆反比例処理
     if (state.divide > 100) state.divide = 100;
     if (state.divide < 0) state.divide = 0;
-    
-    state.mental = 100 - state.divide; // 健全性は分断率の逆
+    state.mental = 100 - state.divide;
     if (state.aoiTrust > 100) state.aoiTrust = 100;
 
-    // 3. ゲームオーバー判定
+    // ゲームオーバー判定
     let gameOverReason = "";
-    if (state.cash < 0) {
-        gameOverReason = "資金ショートにより倒産しました。";
-    } else if (state.stock < 15.0) {
-        gameOverReason = "株価暴落によりCEOを解任されました。";
-    } else if (state.divide >= 100) {
-        gameOverReason = "社会の分断が限界を超え、政府にプラットフォームを閉鎖されました。";
-    } else if (state.mental <= 0) {
-        gameOverReason = "ユーザーの精神が崩壊し、誰もSNSを利用しなくなりました。";
-    } else if (state.aoiTrust <= 0) {
-        gameOverReason = "アオイからの信頼を完全に失い、システム権限を剥奪されました。";
-    }
+    if (state.cash < 0) gameOverReason = "資金ショートにより倒産しました。";
+    else if (state.stock < 15.0) gameOverReason = "株価暴落によりCEOを解任されました。";
+    else if (state.divide >= 100) gameOverReason = "社会の分断が限界を超え、政府にプラットフォームを閉鎖されました。";
+    else if (state.mental <= 0) gameOverReason = "ユーザーの精神が崩壊し、誰もSNSを利用しなくなりました。";
+    else if (state.aoiTrust <= 0) gameOverReason = "アオイからの信頼を完全に失い、システム権限を剥奪されました。";
 
     if (gameOverReason !== "") {
         state.isGameOver = true;
@@ -529,197 +316,43 @@ function endTurn() {
         return; 
     }
 
-    // 4. 次週への準備
-    state.cost = state.cost * 1.1; // 維持費10%UP
+    // 次の週へ
+    state.cost = state.cost * 1.1;
     state.week++;
-    
-    // 画面の数字を更新
     updateUI();
+    
+    // ※ここに次回、インボックスにイベントを10個生成する処理を入れます
+    document.getElementById('inbox-content').innerHTML = `<p style="color: #00f2ff; text-align: center; margin-top: 50px;">WEEK ${state.week} - イベントを読み込み中...</p>`;
 }
 
-// --- SNS Feed Templates ---
+// --- SNS Feed ---
 const tweets = {
     blue: ["新しい友達ができた！ #Synapse", "ここの猫動画、最高すぎる。", "平和なインターネット、大好き。", "みんな優しいね。", "Synapse使いやすくて草"],
     yellow: ["最近、変な広告多くない？", "誰か私の投稿通報した？ムカつく。", "おすすめが偏ってる気がする...", "運営の基準が謎すぎる。", "ちょっとギスギスしてない？"],
     red: ["あいつを特定した。今から行く。", "世界を壊せ。真実を隠すな。", "CEOを吊るせ。 #革命", "明日〇〇で暴動だろ？行くわ。", "殺し合いだ！最高！"]
 };
 
-// --- Full 18 Weeks Scenario Data ---
-const scenarioData = {
-    1: { name: "アオイ", img: IMG_AOI_BLUE, text: "先輩、初めまして！今日から私たちがこのSNSの神…じゃなくてアーキテクトですね。まずはクリーンな運営を目指しましょう。" },
-    2: { name: "リチャード", img: IMG_RICHARD, text: "ハッ、お気楽だな新米。SNSなんてのは便所の落書きだ。今にわかるさ。" },
-    3: { name: "CEO", img: IMG_CEO_BLUE, text: "収益が甘い。もっとユーザーを『中毒』にさせろ。アルゴリズムを強化するんだ。" },
-    4: { name: "アオイ", img: IMG_AOI_BLUE, text: "（PHASE: BLUE 最終週）…少し、言葉の鋭い人が増えてきました。投資の準備をしましょう。" },
-    5: { name: "SYSTEM", img: IMG_SYSTEM, text: "【警告】不適切なハッシュタグがトレンド入り。フェーズ：YELLOWへ移行します。" },
-    6: { name: "CEO", img: IMG_CEO_BLUE, text: "見ろ、株価が上がった！対立こそがクリックを生む。もっと煽らせろ。" },
-    7: { name: "リチャード", img: IMG_RICHARD, text: "あーあ、タイムラインが汚れちまったな。お前、夜道には気をつけろよ？" },
-    8: { name: "アオイ", img: IMG_AOI_BLUE, text: "先輩、検閲が追いつきません。モデレーション部門の予算を増やさないと…" },
-    9: { name: "CEO", img: IMG_CEO_BLUE, text: "投資家たちがもっと過激な『バズ』を求めている。期待に応えろ。" },
-    10: { name: "SYSTEM", img: IMG_SYSTEM, text: "【重大】分断率が50%を超過。プラットフォームの空気が変質しています。" },
-    11: { name: "アオイ", img: IMG_AOI_BLUE, text: "…今日、オフィスの窓が割られました。私たちの仕事、間違ってませんか？" },
-    12: { name: "CEO", img: IMG_CEO_BLUE, text: "（PHASE: RED）ついに来た。世界が燃えている。これこそが最高のエンタメだ！" },
-    13: { name: "リチャード", img: IMG_RICHARD, text: "おい、お前のSNSのせいで暴動が起きてるぞ。人殺しアーキテクト君。" },
-    14: { name: "アオイ", img: IMG_AOI_BLUE, text: "（虚ろな目）もう、通知をオフにしても、叫び声が聞こえるんです…" },
-    15: { name: "CEO", img: IMG_CEO_BLUE, text: "政府が介入を考えている。ロビー活動に金を積め。まだ搾り取れるぞ。" },
-    16: { name: "SYSTEM", img: IMG_SYSTEM, text: "【非常事態】サーバー負荷限界。憎悪の拡散スピードが物理法則を突破。" },
-    17: { name: "アオイ", img: IMG_AOI_BLUE, text: "…さようなら、先輩。私はもう、この画面を見ることができません。" },
-    18: { name: "CEO", img: IMG_CEO_BLUE, text: "（最終週）世界は再構築された。混沌こそが真理だ。我々は神になったのだ。" }
-};
-
-// --- Logic: Turn Processing ---
-function updateUI() {
-    document.getElementById('cash-val').innerText = `$${state.cash.toLocaleString()}`;
-    document.getElementById('stock-val').innerText = `$${state.stock.toFixed(2)}`;
-    document.getElementById('divide-val').innerText = `${Math.floor(state.divide)}%`;
-    document.getElementById('mental-val').innerText = `${Math.floor(state.mental)}%`;
-    document.getElementById('clock').innerText = `WEEK ${state.week.toString().padStart(2, '0')} / 18`;
-    
-    document.getElementById('divide-bar').style.width = `${state.divide}%`;
-    document.getElementById('mental-bar').style.width = `${state.mental}%`;
-    document.getElementById('lv-mod').innerText = state.levels.mod;
-    document.getElementById('lv-algo').innerText = state.levels.algo;
-    document.getElementById('lv-lobby').innerText = state.levels.lobby;
-    // 追加：リッチな時の隠し演出
-function checkRichBonus() {
-    if (state.cash >= 2000000 && state.week % 4 === 0) {
-        console.log("CEO: 君の集金能力には感服するよ。ボーナスを検討しよう。");
-        // ここにさらに演出を足すことも可能です
-    }
-}
-
-    // Danger UI
-    if(state.cash < 100000) document.getElementById('cash-val').classList.add('danger');
-    else document.getElementById('cash-val').classList.remove('danger');
-
-    // Era Visual Shift
-    const eraTag = document.getElementById('era-tag');
-    if(state.week < 5) { eraTag.innerText = "[PHASE: BLUE]"; eraTag.style.color = "var(--accent-blue)"; }
-    else if(state.week < 12) { eraTag.innerText = "[PHASE: YELLOW]"; eraTag.style.color = "var(--accent-yellow)"; }
-    else { 
-        eraTag.innerText = "[PHASE: RED]"; eraTag.style.color = "var(--accent-red)"; 
-        document.body.classList.add('glitch');
-    }
-}
-
-function processTurnEnd() {
-    if(state.isGameOver) return;
-
-    // 1. Finance calculation
-    state.revenue = (state.levels.algo * 150000) + Math.floor(Math.random() * 50000);
-    state.cash += (state.revenue - state.cost);
-    state.stock += (state.revenue / 100000) - (state.divide / 10);
-
-    // 2. Social Parameters
-    state.divide += (3 + state.levels.algo * 4) / (state.levels.mod * 1.2);
-    state.mental -= (1 + state.levels.algo * 1.5);
-    if(state.levels.lobby > 0) state.divide -= state.levels.lobby * 2;
-
-    // 3. Game Over Checks
-    if(state.cash < 0) triggerGameOver("BANKRUPTCY: 資金が底をつきました。あなたは解任されました。");
-    else if(state.divide >= 100) triggerGameOver("CIVIL WAR: 社会が完全に崩壊しました。人類の敗北です。");
-    else if(state.week >= 18) triggerGameOver("ENDING: あなたは18週間生き残りました。これが世界の終着点です。");
-    else startInterlude();
-}
-
-function startInterlude() {
-    state.dialogueIdx = 0;
-    const overlay = document.getElementById('overlay');
-    overlay.style.display = 'flex';
-    
-    // Create Dialogue Queue
-    state.dialogueQueue = [
-        { name: "FINANCIAL REPORT", img: IMG_SYSTEM, text: `今週の収益: +$${state.revenue.toLocaleString()} / 運営費: -$${state.cost.toLocaleString()}` }
-    ];
-    const scenario = scenarioData[state.week];
-    if(scenario) state.dialogueQueue.push(scenario);
-
-    renderDialogue();
-}
-
-function renderDialogue() {
-    const d = state.dialogueQueue[state.dialogueIdx];
-    document.getElementById('speaker-name').innerText = d.name;
-    document.getElementById('speaker-img').src = d.img;
-    document.getElementById('dialogue-text').innerText = d.text;
-}
-
-function nextDialogue() {
-    state.dialogueIdx++;
-    if(state.dialogueIdx < state.dialogueQueue.length) {
-        renderDialogue();
-    } else {
-        document.getElementById('dialogue-next-btn').style.display = 'none';
-        document.getElementById('invest-menu').style.display = 'block';
-    }
-}
-
-function invest(type) {
-    const investCost = 200000;
-    if(state.cash < investCost) { alert("資金が不足しています。"); return; }
-    
-    state.cash -= investCost;
-    state.levels[type]++;
-    closeInterlude();
-}
-
-function closeInterlude() {
-    document.getElementById('overlay').style.display = 'none';
-    document.getElementById('invest-menu').style.display = 'none';
-    document.getElementById('dialogue-next-btn').style.display = 'block';
-    state.week++;
-    state.cost += 30000; // Scaled operational cost
-    updateUI();
-    addInboxMessage();
-}
-
-function triggerGameOver(reason) {
-    state.isGameOver = true;
-    document.getElementById('overlay').style.display = 'flex';
-    document.getElementById('speaker-name').innerText = "SYSTEM CRITICAL";
-    document.getElementById('speaker-img').src = IMG_SYSTEM;
-    document.getElementById('dialogue-text').innerText = reason + "\n\n(F5キーで再起動)";
-    document.getElementById('dialogue-next-btn').style.display = 'none';
-}
-
-// --- Live Feed System ---
 function spawnTweet() {
     if(state.isGameOver) return;
-    const tl = document.getElementById('timeline');
+    const tl = document.getElementById('live-feed');
+    if(!tl) return;
+
     const era = state.week < 5 ? 'blue' : (state.week < 12 ? 'yellow' : 'red');
     const list = tweets[era];
     const text = list[Math.floor(Math.random() * list.length)];
     
-    const div = document.createElement('div');
-    div.className = 'tweet';
-    if(era === 'yellow') div.style.borderColor = 'var(--accent-yellow)';
-    if(era === 'red') { div.style.borderColor = 'var(--accent-red)'; div.style.color = 'var(--accent-red)'; }
+    const p = document.createElement('p');
+    if(era === 'yellow') p.style.borderLeftColor = 'var(--accent-yellow)';
+    if(era === 'red') { p.style.borderLeftColor = 'var(--accent-red)'; p.style.color = 'var(--accent-red)'; }
     
-    div.innerText = `@User_${Math.floor(Math.random()*999)}: ${text}`;
-    tl.prepend(div);
-    if(tl.children.length > 12) tl.lastChild.remove();
+    p.innerText = `@User_${Math.floor(Math.random()*999)}: ${text}`;
+    tl.prepend(p);
+    
+    if(tl.children.length > 15) tl.lastChild.remove();
 }
 
-function addInboxMessage() {
-    const inbox = document.getElementById('inbox');
-    const sc = scenarioData[state.week - 1];
-    if(!sc) return;
-    
-    const div = document.createElement('div');
-    div.className = 'msg-card';
-    div.innerHTML = `
-        <img src="${sc.img}" class="msg-icon">
-        <div class="msg-body">
-            <strong>${sc.name}</strong> <small style="color:#555;">WEEK ${state.week-1}</small><br>
-            ${sc.text}
-        </div>
-    `;
-    inbox.prepend(div);
-}
-
-// Init
+// ツイートの自動生成スタート
 setInterval(spawnTweet, 2500);
-updateUI();
-addInboxMessage();
 
 </script>
 </body>
