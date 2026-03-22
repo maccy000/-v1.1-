@@ -357,7 +357,11 @@ function updateUI() {
 
 // --- ★ インボックスにメッセージを追加する関数 ---
 // --- ★ インボックスにメッセージと選択肢を追加する関数 ---
+// --- ★ インボックスにメッセージと選択肢を追加する関数（修正版） ---
 function addInboxMessage(week) {
+    // ★ 重複チェック：すでにこの週のメッセージが表示されていたら、追加せずに処理を止める
+    if (document.getElementById(`msg-week-${week}`)) return;
+
     const inbox = document.getElementById('inbox-content');
     const data = scenarioData[week];
     
@@ -368,6 +372,7 @@ function addInboxMessage(week) {
 
     const div = document.createElement('div');
     div.className = 'msg-card';
+    div.id = `msg-week-${week}`; // ★ 重複チェック用のIDを付与
     
     // 選択肢のHTMLを作成
     let choicesHTML = "";
@@ -392,7 +397,6 @@ function addInboxMessage(week) {
     
     inbox.prepend(div);
 }
-
 // --- ★ 選択肢を選んだときの処理 ---
 function makeChoice(week, choiceType) {
     const data = scenarioData[week];
