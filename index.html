@@ -175,6 +175,15 @@
             80% { transform: translate(2px, -2px); }
             100% { transform: translate(0); }
         }
+        /* --- 追加：選択肢ボタンのデザイン --- */
+        .choice-container { margin-top: 10px; display: flex; gap: 10px; }
+        .choice-btn {
+            background: #222; color: #fff; border: 1px solid #555;
+            padding: 8px 12px; cursor: pointer; font-family: inherit; font-size: 0.85em;
+            transition: 0.2s; flex: 1;
+        }
+        .choice-btn:hover { background: var(--accent-blue); color: #000; }
+        .choice-result { margin-top: 8px; font-size: 0.85em; color: var(--accent-yellow); }
     </style>
 </head>
 <body>
@@ -238,13 +247,32 @@ const IMG_CEO = "https://placehold.co/150x150/220000/ff003c?text=CEO";
 const IMG_SYS = "https://placehold.co/150x150/000000/00f2ff?text=SYS";
 
 // --- 序盤6ターンのシナリオデータ ---
+// --- 序盤6ターンのシナリオデータ（選択肢つき） ---
 const scenarioData = {
-    1: { name: "アオイ", img: IMG_AOI, text: "先輩、初めまして！今日から私たちがこのSNSのアーキテクトですね。まずはクリーンな運営を目指しましょう。" },
-    2: { name: "リチャード", img: IMG_RICHARD, text: "ハッ、お気楽だな新米。SNSなんてのは便所の落書きだ。今にわかるさ。" },
-    3: { name: "CEO", img: IMG_CEO, text: "収益が甘い。もっとユーザーを『中毒』にさせろ。アルゴリズムを強化するんだ。" },
-    4: { name: "アオイ", img: IMG_AOI, text: "（PHASE: BLUE 最終週）…少し、言葉の鋭い人が増えてきました。対策の準備をしましょう。" },
-    5: { name: "SYSTEM", img: IMG_SYS, text: "【警告】不適切なハッシュタグがトレンド入り。フェーズ：YELLOWへ移行します。" },
-    6: { name: "CEO", img: IMG_CEO, text: "見ろ、株価が上がった！対立こそがクリックを生む。もっと煽らせろ。" }
+    1: { name: "アオイ", img: IMG_AOI, text: "先輩、初めまして！今日から私たちがこのSNSのアーキテクトですね。まずはクリーンな運営を目指しましょう。",
+         approve: { label: "同意する (健全性+5)", effect: () => { state.mental += 5; } },
+         reject: { label: "無視する (変化なし)", effect: () => {} }
+       },
+    2: { name: "リチャード", img: IMG_RICHARD, text: "ハッ、お気楽だな新米。SNSなんてのは便所の落書きだ。今にわかるさ。",
+         approve: { label: "反論する (好感度-5)", effect: () => { state.aoiTrust -= 5; } },
+         reject: { label: "スルーする (分断率+2)", effect: () => { state.divide += 2; } }
+       },
+    3: { name: "CEO", img: IMG_CEO, text: "収益が甘い。もっとユーザーを『中毒』にさせろ。アルゴリズムを強化するんだ。",
+         approve: { label: "強化する (資金+1000, 分断+10)", effect: () => { state.cash += 1000; state.divide += 10; } },
+         reject: { label: "断る (株価-2)", effect: () => { state.stock -= 2; } }
+       },
+    4: { name: "アオイ", img: IMG_AOI, text: "（PHASE: BLUE 最終週）…少し、言葉の鋭い人が増えてきました。対策の準備をしましょう。",
+         approve: { label: "モデレーター増員 (費用-500, 健全性+10)", effect: () => { state.cash -= 500; state.mental += 10; } },
+         reject: { label: "静観する (分断率+5)", effect: () => { state.divide += 5; } }
+       },
+    5: { name: "SYSTEM", img: IMG_SYS, text: "【警告】不適切なハッシュタグがトレンド入り。フェーズ：YELLOWへ移行します。",
+         approve: { label: "トレンド削除 (費用-300)", effect: () => { state.cash -= 300; } },
+         reject: { label: "放置してバズらせる (資金+800, 分断+8)", effect: () => { state.cash += 800; state.divide += 8; } }
+       },
+    6: { name: "CEO", img: IMG_CEO, text: "見ろ、株価が上がった！対立こそがクリックを生む。もっと煽らせろ。",
+         approve: { label: "さらに煽る (株価+5, 健全性-15)", effect: () => { state.stock += 5; state.mental -= 15; } },
+         reject: { label: "アルゴリズムを戻す (株価-5, 健全性+5)", effect: () => { state.stock -= 5; state.mental += 5; } }
+       }
 };
 
 // --- スライドデータ ---
@@ -328,30 +356,62 @@ function updateUI() {
 }
 
 // --- ★ インボックスにメッセージを追加する関数 ---
+// --- ★ インボックスにメッセージと選択肢を追加する関数 ---
 function addInboxMessage(week) {
     const inbox = document.getElementById('inbox-content');
     const data = scenarioData[week];
     
-    // WEEK 1の最初の追加時に「BOOTING...」の文字を消す
     const bootText = document.getElementById('boot-text');
     if (bootText) bootText.remove();
 
-    // データがない週（7週目以降など）は何もしない
     if (!data) return;
 
-    // メッセージカードのHTMLを作成
     const div = document.createElement('div');
     div.className = 'msg-card';
+    
+    // 選択肢のHTMLを作成
+    let choicesHTML = "";
+    if (data.approve && data.reject) {
+        choicesHTML = `
+            <div class="choice-container" id="choices-${week}">
+                <button class="choice-btn" onclick="makeChoice(${week}, 'approve')">${data.approve.label}</button>
+                <button class="choice-btn" onclick="makeChoice(${week}, 'reject')">${data.reject.label}</button>
+            </div>
+            <div id="result-${week}" class="choice-result"></div>
+        `;
+    }
+
     div.innerHTML = `
         <img src="${data.img}" class="msg-icon" alt="icon">
         <div class="msg-body">
             <strong>${data.name}</strong> <small style="color:#888;">[WEEK ${week}]</small><br>
             ${data.text}
+            ${choicesHTML}
         </div>
     `;
     
-    // インボックスの一番上に追加（新しいものほど上にくる）
     inbox.prepend(div);
+}
+
+// --- ★ 選択肢を選んだときの処理 ---
+function makeChoice(week, choiceType) {
+    const data = scenarioData[week];
+    if (!data) return;
+
+    // 効果を発動して、結果のテキストを表示
+    if (choiceType === 'approve') {
+        data.approve.effect();
+        document.getElementById(`result-${week}`).innerText = ">> 実行しました： " + data.approve.label.split(" ")[0];
+    } else {
+        data.reject.effect();
+        document.getElementById(`result-${week}`).innerText = ">> 実行しました： " + data.reject.label.split(" ")[0];
+    }
+
+    // 左側のステータスUIを更新
+    updateUI();
+
+    // ボタンを消す（連打・選び直し防止）
+    document.getElementById(`choices-${week}`).style.display = 'none';
 }
 
 // --- ターン終了処理 ---
