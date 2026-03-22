@@ -295,66 +295,7 @@
         <div id="clock">WEEK 01 / 18</div>
     </header>
 
-    <aside id="stats-panel" class="panel">
-        <div class="panel-header">MANAGEMENT STATUS</div>
-        <div class="stat-box">
-            <span class="stat-label">TOTAL CASH</span>
-            <span id="cash-val" class="stat-value">$1,000,000</span>
-            <div id="cost-val" style="font-size: 0.7em; color: var(--accent-red);">NEXT COST: -$80,000</div>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">STOCK PRICE</span>
-            <span id="stock-val" class="stat-value">$100.00</span>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">SOCIAL DIVIDE (DANGER)</span>
-            <span id="divide-val" class="stat-value">10%</span>
-            <div class="gauge-container"><div id="divide-bar" class="gauge-fill" style="background: var(--accent-red);"></div></div>
-        </div>
-        <div class="stat-box">
-            <span class="stat-label">USER MENTAL (STABILITY)</span>
-            <span id="mental-val" class="stat-value">95%</span>
-            <div class="gauge-container"><div id="mental-bar" class="gauge-fill" style="background: var(--accent-blue);"></div></div>
-        </div>
-        <div class="stat-box" style="border-bottom:none;">
-            <div class="stat-label">DEPARTMENT LEVELS</div>
-            <div style="font-size: 0.8em; margin-top:5px;">
-                MODERATION: <span id="lv-mod" style="color:var(--accent-blue)">1</span><br>
-                ALGORITHM: <span id="lv-algo" style="color:var(--accent-yellow)">1</span><br>
-                LOBBYING: <span id="lv-lobby" style="color:var(--accent-red)">0</span>
-            </div>
-        </div>
-    </aside>
-
-    <main id="main-feed" class="panel">
-        <div class="panel-header">ADMIN INBOX (ACTION REQUIRED)</div>
-        <div id="inbox"></div>
-        <button class="next-week-btn" onclick="processTurnEnd()">EXECUTE & TURN END</button>
-    </main>
-
-    <aside id="timeline-panel" class="panel">
-        <div class="panel-header">LIVE FEED: WORLD REACTION</div>
-        <div id="timeline"></div>
-    </aside>
-</div>
-
-<div id="overlay">
-    <img id="speaker-img" class="speaker-img" src="" alt="">
-    <div id="dialogue-ui">
-        <div id="speaker-name">NAME</div>
-        <div id="dialogue-text">...</div>
-        
-        <div id="invest-menu">
-            <h3>BUDGET ALLOCATION (COST: $200,000)</h3>
-            <div class="invest-btn" onclick="invest('mod')"><b>MODERATION</b><br><small>Suppress Divide</small></div>
-            <div class="invest-btn" onclick="invest('algo')"><b>ALGORITHM</b><br><small>Boost Revenue</small></div>
-            <div class="invest-btn" onclick="invest('lobby')"><b>LOBBYING</b><br><small>Delay Intervention</small></div>
-            <br>
-            <button onclick="closeInterlude()" style="margin-top:15px; border-color:#555; color:#888;">SKIP INVESTMENT</button>
-        </div>
-        <button id="dialogue-next-btn" onclick="nextDialogue()" style="margin-top: 20px; width: 100%;">CONTINUE...</button>
-    </div>
-</div>
+   
 
 
 
