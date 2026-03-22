@@ -232,6 +232,34 @@
 #slide-btn:hover {
     background: var(--accent-blue); color: #000;
 }
+        /* --- ステータスパネルのデザイン --- */
+.status-panel {
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--accent-blue);
+    padding: 15px;
+    margin-bottom: 20px;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.2);
+}
+
+.status-panel h3 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    color: var(--accent-blue);
+    border-bottom: 1px dotted var(--accent-blue);
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+.status-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 1.1rem;
+    line-height: 1.8;
+}
+
+.danger-text { color: var(--accent-red); }
+.safe-text { color: #0f0; /* 健全性は緑色 */ }
     </style>
 </head>
 <body>
@@ -252,6 +280,16 @@
     </div>
 
 <div id="game-view" style="display: none;">
+    <div id="status-panel" class="status-panel">
+    <h3>SYSTEM STATUS // WEEK <span id="ui-week">1</span></h3>
+    <ul class="status-list">
+        <li>TOTAL CASH : $<span id="ui-cash">5000</span></li>
+        <li>NEXT COST  : $<span id="ui-cost">300</span> /w</li>
+        <li>STOCK PRICE: $<span id="ui-stock">30.00</span></li>
+        <li class="danger-text">SOCIAL DIVIDE: <span id="ui-divide">15</span>%</li>
+        <li class="safe-text">USER MENTAL  : <span id="ui-mental">85</span>%</li>
+    </ul>
+</div>
     <header>
         <div style="font-size: 1.5em; letter-spacing: 2px;">SYNAPSE ARCHITECT <span id="era-tag" style="font-size: 0.6em; vertical-align: middle;">[PHASE: BLUE]</span></div>
         <div id="clock">WEEK 01 / 18</div>
@@ -380,6 +418,7 @@ function nextSlide() {
             // 最後のスライド終了
             document.getElementById('intro-slides').style.display = 'none';
             document.getElementById('game-view').style.display = 'grid';
+            updateUI(); // 画面が表示されたら数値を反映する
             document.body.classList.add('glitch');
             setTimeout(() => document.body.classList.remove('glitch'), 500);
         }
@@ -391,14 +430,71 @@ const IMG_AOI_BLUE = "./aoi_normal.png";
 const IMG_CEO_BLUE = "./ceo_normal.png";
 const IMG_RICHARD = "https://placehold.co/150x150/222/f00?text=RICHARD";
 const IMG_SYSTEM = "https://placehold.co/150x150/000/0ff?text=SYS";
+// --- ゲームのパラメーター管理（上書き） ---
 let state = {
-    week: 1, cash: 1000000, revenue: 0, stock: 100.0,
-    divide: 10, mental: 95, cost: 80000,
-    levels: { mod: 1, algo: 1, lobby: 0 },
-    isGameOver: false,
-    dialogueQueue: [],
-    dialogueIdx: 0
+    week: 1,              // 現在の週
+    cash: 5000,           // 資金
+    cost: 300,            // 維持費
+    stock: 30.0,          // 株価
+    divide: 15,           // 分断率
+    mental: 85,           // 健全性（100 - 分断率）
+    aoiTrust: 40,         // アオイの好感度（裏パラメーター）
+    isGameOver: false
 };
+
+// --- 画面のUIを最新の数字に更新する関数（追加） ---
+function updateUI() {
+    document.getElementById('ui-week').innerText = state.week;
+    document.getElementById('ui-cash').innerText = Math.floor(state.cash);
+    document.getElementById('ui-cost').innerText = Math.floor(state.cost);
+    document.getElementById('ui-stock').innerText = state.stock.toFixed(2); // 小数点2桁まで表示
+    document.getElementById('ui-divide').innerText = state.divide;
+    document.getElementById('ui-mental').innerText = state.mental;
+}
+
+// --- ターンの終了（決算と判定）処理（追加） ---
+function endTurn() {
+    if (state.isGameOver) return;
+
+    // 1. 収支計算
+    let baseRevenue = state.stock * 10;
+    state.cash += baseRevenue;
+    state.cash -= Math.floor(state.cost);
+
+    // 2. パラメーターの限界値設定＆反比例処理
+    if (state.divide > 100) state.divide = 100;
+    if (state.divide < 0) state.divide = 0;
+    
+    state.mental = 100 - state.divide; // 健全性は分断率の逆
+    if (state.aoiTrust > 100) state.aoiTrust = 100;
+
+    // 3. ゲームオーバー判定
+    let gameOverReason = "";
+    if (state.cash < 0) {
+        gameOverReason = "資金ショートにより倒産しました。";
+    } else if (state.stock < 15.0) {
+        gameOverReason = "株価暴落によりCEOを解任されました。";
+    } else if (state.divide >= 100) {
+        gameOverReason = "社会の分断が限界を超え、政府にプラットフォームを閉鎖されました。";
+    } else if (state.mental <= 0) {
+        gameOverReason = "ユーザーの精神が崩壊し、誰もSNSを利用しなくなりました。";
+    } else if (state.aoiTrust <= 0) {
+        gameOverReason = "アオイからの信頼を完全に失い、システム権限を剥奪されました。";
+    }
+
+    if (gameOverReason !== "") {
+        state.isGameOver = true;
+        alert("【SYSTEM DOWN - GAME OVER】\n\n" + gameOverReason);
+        return; 
+    }
+
+    // 4. 次週への準備
+    state.cost = state.cost * 1.1; // 維持費10%UP
+    state.week++;
+    
+    // 画面の数字を更新
+    updateUI();
+}
 
 // --- SNS Feed Templates ---
 const tweets = {
